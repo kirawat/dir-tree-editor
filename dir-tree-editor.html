@@ -6,7 +6,7 @@
     <title>DirTreeEditor</title>
 
     <!--
-    DirTreeEditor v1.0.1
+    DirTreeEditor v1.1.0
 
     Copyright (c) 2025 Kirawat Sahasewiyon
 
@@ -186,6 +186,19 @@
         background-color: #e5e7eb;
       }
 
+      .clear-button {
+        /* Positioned below the sort button. */
+        top: 2.75rem;
+      }
+
+      .action-button svg {
+        /* Style the SVG to fit inside the button. */
+        width: 16px;
+        height: 16px;
+        display: block; /* Helps with centering. */
+        margin: 0 auto;
+      }
+
       .share-button {
         position: absolute;
         top: 0.75rem;
@@ -238,6 +251,79 @@
         padding-left: 0.35rem;
       }
 
+      /* --- Confirmation Modal --- */
+      .modal-overlay {
+        display: none; /* Hidden by default. */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        /* Use flex to center the modal box. */
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-box {
+        background-color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 400px;
+      }
+
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .modal-text {
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin: 0 0 1.5rem 0;
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+      }
+
+      .modal-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+      }
+
+      .modal-button-cancel {
+        background-color: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+      .modal-button-cancel:hover {
+        background-color: #e5e7eb;
+      }
+
+      .modal-button-confirm {
+        background-color: #ef4444; /* red-500. */
+        color: #ffffff;
+      }
+      .modal-button-confirm:hover {
+        background-color: #dc2626; /* red-600. */
+      }
+
+      /* --- Bottom Toolbar (Mobile Only) --- */
+      .bottom-toolbar {
+        display: none; /* Hidden by default. */
+      }
+
       /* --- Mobile Responsiveness --- */
 
       /* Hide tabs by default on desktop. */
@@ -248,6 +334,8 @@
       @media (max-width: 768px) {
         body {
           padding: 0;
+          /* Add padding to the bottom to not be overlapped by the toolbar. */
+          padding-bottom: 4rem; /* Height of the bottom toolbar. */
           height: 100vh;
         }
 
@@ -316,10 +404,59 @@
           flex-direction: column;
           align-items: center;
           gap: 0.5rem;
+          /* Add padding for the bottom toolbar. */
+          padding-bottom: 1rem;
         }
 
         .github-link {
           padding: 0;
+        }
+
+        /* --- Bottom Toolbar (Mobile Only) --- */
+        .bottom-toolbar {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3.5rem; /* 56px */
+          background-color: #f9fafb;
+          border-top: 1px solid #e5e7eb;
+          box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .toolbar-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.5rem; /* 8px */
+          border-radius: 0.375rem; /* 6px */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #374151; /* gray-700 */
+        }
+
+        .toolbar-button:hover {
+          background-color: #f3f4f6; /* gray-100 */
+        }
+
+        .toolbar-button:active {
+          background-color: #e5e7eb; /* gray-200 */
+        }
+
+        .toolbar-button:disabled {
+          color: #d1d5db; /* gray-300 */
+          cursor: not-allowed;
+          background-color: transparent;
+        }
+
+        .toolbar-button svg {
+          width: 24px;
+          height: 24px;
+          /* stroke-width: 2; - This is no longer needed for the new filled icons. */
         }
       }
     </style>
@@ -346,15 +483,52 @@
           <input type="checkbox" id="check-icons" />
           <label for="check-icons">Icons</label>
         </div>
-        <button class="action-button share-button" id="share-button">
-          Share
+        <button
+          class="action-button share-button"
+          id="share-button"
+          title="Copy Shareable URL"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M12 2.58582L18.2071 8.79292L16.7929 10.2071L13 6.41424V16H11V6.41424L7.20711 10.2071L5.79289 8.79292L12 2.58582ZM3 18V14H5V18C5 18.5523 5.44772 19 6 19H18C18.5523 19 19 18.5523 19 18V14H21V18C21 19.6569 19.6569 21 18 21H6C4.34315 21 3 19.6569 3 18Z"
+            ></path>
+          </svg>
         </button>
       </div>
 
       <!-- The main content area with two panes. -->
       <div class="content-area">
         <div class="pane pane-editor pane-active" id="pane-editor">
-          <button class="action-button" id="sort-button">Sort</button>
+          <button class="action-button" id="sort-button" title="Sort A-Z">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M20 4V16H23L19 21L15 16H18V4H20ZM12 18V20H3V18H12ZM14 11V13H3V11H14ZM14 4V6H3V4H14Z"
+              ></path>
+            </svg>
+          </button>
+          <button
+            class="action-button clear-button"
+            id="clear-button"
+            title="Clear Editor"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z"
+              ></path>
+            </svg>
+          </button>
           <textarea
             id="editor"
             class="editor"
@@ -364,10 +538,26 @@
         </div>
 
         <div class="pane pane-preview" id="pane-preview">
-          <button class="action-button" id="copy-button">Copy</button>
+          <button
+            class="action-button"
+            id="copy-button"
+            title="Copy to Clipboard"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM5.00242 8L5.00019 20H14.9998V8H5.00242ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6Z"
+              ></path>
+            </svg>
+          </button>
           <pre id="preview" class="preview"></pre>
         </div>
       </div>
+
+      <!-- The main content area with two panes. -->
     </div>
 
     <!-- Footer -->
@@ -406,10 +596,80 @@
       </a>
     </footer>
 
+    <!-- Confirmation Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+      <div class="modal-box">
+        <h3 class="modal-title">Clear Editor?</h3>
+        <p class="modal-text">
+          Are you sure you want to clear the entire editor?
+        </p>
+        <div class="modal-buttons">
+          <button class="modal-button modal-button-cancel" id="modal-cancel">
+            Cancel
+          </button>
+          <button class="modal-button modal-button-confirm" id="modal-confirm">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Toolbar (Mobile Only) -->
+    <div class="bottom-toolbar">
+      <button class="toolbar-button" id="undo-button" title="Undo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"
+          ></path>
+        </svg>
+      </button>
+      <button class="toolbar-button" id="redo-button" title="Redo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M18.1716 6.99955H11C7.68629 6.99955 5 9.68584 5 12.9996C5 16.3133 7.68629 18.9996 11 18.9996H20V20.9996H11C6.58172 20.9996 3 17.4178 3 12.9996C3 8.58127 6.58172 4.99955 11 4.99955H18.1716L15.636 2.46402L17.0503 1.0498L22 5.99955L17.0503 10.9493L15.636 9.53509L18.1716 6.99955Z"
+          ></path>
+        </svg>
+      </button>
+      <button
+        class="toolbar-button"
+        id="outdent-button"
+        title="Decrease Indent"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M3 4H21V6H3V4ZM3 19H21V21H3V19ZM11 14H21V16H11V14ZM11 9H21V11H11V9ZM3 12.5L7 9V16L3 12.5Z"
+          ></path>
+        </svg>
+      </button>
+      <button class="toolbar-button" id="indent-button" title="Increase Indent">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M3 4H21V6H3V4ZM3 19H21V21H3V19ZM11 14H21V16H11V14ZM11 9H21V11H11V9ZM7 12.5L3 16V9L7 12.5Z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
     <script>
       // --- CONSTANTS ---
       const DEFAULT_EDITOR_INDENT = 2;
-      const INDENT_TYPE_PLACEHOLDER = "  "; // Default 2 spaces.
+      const HISTORY_DEBOUNCE_MS = 500; // 0.5s pause before saving history.
 
       // --- DOM ELEMENTS ---
       const editorTextArea = document.getElementById("editor");
@@ -419,6 +679,7 @@
       );
       const checkIcons = document.getElementById("check-icons");
       const copyButton = document.getElementById("copy-button");
+      const clearButton = document.getElementById("clear-button");
       const sortButton = document.getElementById("sort-button");
       const shareButton = document.getElementById("share-button");
       const tabEditor = document.getElementById("tab-editor");
@@ -426,12 +687,30 @@
       const paneEditor = document.getElementById("pane-editor");
       const panePreview = document.getElementById("pane-preview");
 
+      // Mobile Toolbar Buttons.
+      const undoButton = document.getElementById("undo-button");
+      const redoButton = document.getElementById("redo-button");
+      const indentButton = document.getElementById("indent-button");
+      const outdentButton = document.getElementById("outdent-button");
+
+      // Confirmation Modal.
+      const modalOverlay = document.getElementById("modal-overlay");
+      const modalConfirm = document.getElementById("modal-confirm");
+      const modalCancel = document.getElementById("modal-cancel");
+
       // --- APP STATE ---
       /**
        * The auto-detected indent size (in spaces) used by the editor.
        * Defaults to 4 and is updated by the parser.
        */
       let detectedEditorIndent = DEFAULT_EDITOR_INDENT;
+
+      /**
+       * History stack for Undo/Redo functionality.
+       */
+      let historyStack = [];
+      let historyIndex = -1;
+      let historyTimer = null;
 
       // --- CORE LOGIC ---
 
@@ -755,8 +1034,147 @@
         const treeString = renderTreeToString(treeData);
         previewOutput.textContent = treeString;
 
-        // Updae the URL after rendering.
+        // Update the URL after rendering.
         updateUrl();
+
+        // Save to history on a debounce timer.
+        saveHistoryState();
+      }
+
+      // --- HISTORY (UNDO/REDO) LOGIC ---
+
+      /**
+       * Updates the enabled/disabled state of Undo/Redo buttons.
+       */
+      function updateHistoryButtons() {
+        undoButton.disabled = historyIndex <= 0;
+        redoButton.disabled = historyIndex >= historyStack.length - 1;
+      }
+
+      /**
+       * Saves the current editor state to the history stack.
+       * @param {boolean} immediate - If true, saves immediately.
+       * If false, uses a debounce timer.
+       */
+      function saveHistoryState(immediate = false) {
+        clearTimeout(historyTimer);
+
+        const save = () => {
+          const newValue = editorTextArea.value;
+          // Get the current cursor position.
+          const newSelectionStart = editorTextArea.selectionStart;
+          const newSelectionEnd = editorTextArea.selectionEnd;
+
+          // Don't save if the value hasn't changed.
+          const currentState = historyStack[historyIndex];
+          if (
+            currentState &&
+            currentState.text === newValue &&
+            currentState.start === newSelectionStart &&
+            currentState.end === newSelectionEnd
+          ) {
+            return;
+          }
+
+          // Clear any "redo" states.
+          historyStack = historyStack.slice(0, historyIndex + 1);
+          // Add the new state as an object.
+          historyStack.push({
+            text: newValue,
+            start: newSelectionStart,
+            end: newSelectionEnd,
+          });
+          historyIndex = historyStack.length - 1;
+
+          // Prune history if it gets too long.
+          if (historyStack.length > 100) {
+            historyStack.shift(); // Remove the oldest state.
+            historyIndex--;
+          }
+
+          updateHistoryButtons();
+        };
+
+        if (immediate) {
+          save();
+        } else {
+          // Debounced save.
+          historyTimer = setTimeout(save, HISTORY_DEBOUNCE_MS);
+        }
+      }
+
+      /**
+       * Performs an "Undo" action.
+       */
+      function handleUndo() {
+        if (historyIndex <= 0) {
+          return; // Nothing to undo.
+        }
+        historyIndex--;
+        // Restore the previous state object.
+        const state = historyStack[historyIndex];
+        editorTextArea.value = state.text;
+        // Restore the cursor position.
+        editorTextArea.selectionStart = state.start;
+        editorTextArea.selectionEnd = state.end;
+        editorTextArea.focus(); // Explicitly return focus.
+        // Manually trigger render and button update.
+        generateAndRenderTree();
+        updateHistoryButtons();
+      }
+
+      /**
+       * Performs a "Redo" action.
+       */
+      function handleRedo() {
+        if (historyIndex >= historyStack.length - 1) {
+          return; // Nothing to redo.
+        }
+        historyIndex++;
+        // Restore the next state object.
+        const state = historyStack[historyIndex];
+        editorTextArea.value = state.text;
+        // Restore the cursor position.
+        editorTextArea.selectionStart = state.start;
+        editorTextArea.selectionEnd = state.end;
+        editorTextArea.focus(); // Explicitly return focus.
+        // Manually trigger render and button update.
+        generateAndRenderTree();
+        updateHistoryButtons();
+      }
+
+      /**
+       * Shows the confirmation modal.
+       */
+      function showModal() {
+        modalOverlay.style.display = "flex";
+      }
+
+      /**
+       * Hides the confirmation modal.
+       */
+      function hideModal() {
+        modalOverlay.style.display = "none";
+      }
+
+      /**
+       * Clears the editor, triggers a re-render, and saves history.
+       */
+      function handleClearConfirm() {
+        editorTextArea.value = "";
+        hideModal();
+        editorTextArea.focus(); // Explicitly return focus.
+        // Manually trigger render and save history.
+        generateAndRenderTree();
+        saveHistoryState(true); // Save immediately.
+      }
+
+      /**
+       * Prevents buttons from stealing focus from the editor.
+       * @param {MouseEvent} event - The mousedown event.
+       */
+      function preventFocusSteal(event) {
+        event.preventDefault();
       }
 
       // --- EVENT HANDLERS ---
@@ -797,6 +1215,9 @@
 
         // Run the initial render.
         generateAndRenderTree();
+
+        // Save the initial state as the first history entry.
+        saveHistoryState(true);
       }
 
       /**
@@ -816,6 +1237,8 @@
           // It's plain text, just insert it.
           document.execCommand("insertText", false, text);
         }
+
+        saveHistoryState(true);
       }
 
       /**
@@ -885,10 +1308,83 @@
             editorTextArea.selectionStart = editorTextArea.selectionEnd =
               lineStart + newIndentSize;
 
-            // Manually trigger the render.
+            // Trigger the render and save history.
             generateAndRenderTree();
+            saveHistoryState(true);
           }
         }
+      }
+
+      /**
+       * Indents or outdents the selected lines.
+       * @param {boolean} increase - True to indent, false to outdent.
+       */
+      function modifyIndent(increase) {
+        const start = editorTextArea.selectionStart;
+        const end = editorTextArea.selectionEnd;
+        const value = editorTextArea.value;
+        const indent = " ".repeat(detectedEditorIndent);
+
+        // Find the start of the first selected line.
+        let lineStart = start;
+        while (lineStart > 0 && value[lineStart - 1] !== "\n") {
+          lineStart--;
+        }
+
+        // Find the end of the last selected line.
+        let lineEnd = end;
+        if (
+          lineEnd < value.length &&
+          value[lineEnd] !== "\n" &&
+          lineEnd > lineStart
+        ) {
+          while (lineEnd < value.length && value[lineEnd] !== "\n") {
+            lineEnd++;
+          }
+        }
+
+        const selectedText = value.substring(lineStart, lineEnd);
+        const lines = selectedText.split("\n");
+        let newSelectedText = "";
+
+        if (increase) {
+          // Indent.
+          newSelectedText = lines
+            .map((line) => {
+              return indent + line;
+            })
+            .join("\n");
+        } else {
+          // Outdent.
+          newSelectedText = lines
+            .map((line) => {
+              if (line.startsWith(indent)) {
+                return line.substring(indent.length);
+              } else if (line.startsWith(" ")) {
+                // Remove partial indent.
+                return line.replace(/^ +/, "");
+              }
+              return line;
+            })
+            .join("\n");
+        }
+
+        // Replace the text.
+        editorTextArea.value =
+          value.substring(0, lineStart) +
+          newSelectedText +
+          value.substring(lineEnd);
+
+        // Set the cursor position to the end of the modified text.
+        const newCursorPos = lineStart + newSelectedText.length;
+        editorTextArea.selectionStart = newCursorPos;
+        editorTextArea.selectionEnd = newCursorPos;
+
+        // Explicitly return focus to the editor.
+        editorTextArea.focus();
+
+        generateAndRenderTree();
+        saveHistoryState(true);
       }
 
       /**
@@ -923,9 +1419,10 @@
         document.body.removeChild(tempArea);
 
         // Feedback to user.
+        const originalIcon = copyButton.innerHTML;
         copyButton.textContent = "Copied!";
         setTimeout(() => {
-          copyButton.textContent = "Copy";
+          copyButton.innerHTML = originalIcon;
         }, 2000);
       }
 
@@ -936,7 +1433,9 @@
         const tree = parseTextToTree(editorTextArea.value);
         sortTree(tree);
         editorTextArea.value = treeToText(tree);
+        editorTextArea.focus();
         generateAndRenderTree();
+        saveHistoryState(true);
       }
 
       /**
@@ -954,9 +1453,10 @@
         document.body.removeChild(tempArea);
 
         // Feedback to user.
+        const originalIcon = shareButton.innerHTML;
         shareButton.textContent = "Copied!";
         setTimeout(() => {
-          shareButton.textContent = "Share";
+          shareButton.innerHTML = originalIcon;
         }, 2000);
       }
 
@@ -973,12 +1473,40 @@
 
       // Button listeners.
       copyButton.addEventListener("click", handleCopyButtonClick);
+      copyButton.addEventListener("mousedown", preventFocusSteal);
       sortButton.addEventListener("click", handleSortButtonClick);
+      sortButton.addEventListener("mousedown", preventFocusSteal);
       shareButton.addEventListener("click", handleShareButtonClick);
+      shareButton.addEventListener("mousedown", preventFocusSteal);
+      clearButton.addEventListener("click", showModal); // New listener.
+      clearButton.addEventListener("mousedown", preventFocusSteal);
+
+      // Mobile Toolbar Button Listeners.
+      undoButton.addEventListener("click", handleUndo);
+      undoButton.addEventListener("mousedown", preventFocusSteal);
+      redoButton.addEventListener("click", handleRedo);
+      redoButton.addEventListener("mousedown", preventFocusSteal);
+      indentButton.addEventListener("click", () => modifyIndent(true));
+      indentButton.addEventListener("mousedown", preventFocusSteal);
+      outdentButton.addEventListener("click", () => modifyIndent(false));
+      outdentButton.addEventListener("mousedown", preventFocusSteal);
 
       // Mobile tab listeners.
       tabEditor.addEventListener("click", () => handleTabClick(true));
       tabPreview.addEventListener("click", () => handleTabClick(false));
+
+      // Modal listeners.
+      modalCancel.addEventListener("click", hideModal);
+      modalCancel.addEventListener("mousedown", preventFocusSteal);
+      modalConfirm.addEventListener("click", handleClearConfirm);
+      modalConfirm.addEventListener("mousedown", preventFocusSteal);
+
+      modalOverlay.addEventListener("click", (event) => {
+        // Close modal if clicking the background overlay.
+        if (event.target === modalOverlay) {
+          hideModal();
+        }
+      });
 
       // --- INITIALIZATION ---
 
