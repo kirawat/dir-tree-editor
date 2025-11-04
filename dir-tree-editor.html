@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DirTreeEditor</title>
+
+    <!--
+    DirTreeEditor v1.0.0
+
+    Copyright (c) 2025 Kirawat Sahasewiyon
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    -->
+
+    <style>
+      :root {
+        --c-license-text: #6b7280;
+        --c-link-hover: #111827;
+      }
+
+      /* --- Base & Layout --- */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f3f4f6;
+        color: #111827;
+      }
+
+      body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        box-sizing: border-box;
+      }
+
+      /* --- Header --- */
+      .header {
+        padding: 0.5em 0 1em 0;
+        text-align: center;
+      }
+
+      .header-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      /* --- Main App Container --- */
+      .container {
+        width: 100%;
+        max-width: 80rem;
+        margin: auto;
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-height: 0;
+      }
+
+      /* --- Options Bar --- */
+      .options-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+        border-radius: 0.75rem 0.75rem 0 0;
+        position: relative;
+      }
+
+      .option-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .option-group label {
+        cursor: pointer;
+        user-select: none; /* Prevent text selection on click. */
+      }
+
+      .option-group input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      /* --- Main Content Panes --- */
+      .content-area {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden;
+        border-radius: 0 0 0.75rem 0.75rem;
+      }
+
+      .pane {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      /* Add a border between the panes. */
+      .pane-editor {
+        border-right: 1px solid #e5e7eb;
+      }
+
+      /* --- Editor & Preview Elements --- */
+      .editor,
+      .preview {
+        height: 100%;
+        width: 100%;
+        padding: 1rem;
+        margin: 0;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        background-color: #ffffff;
+        color: #111827;
+        overflow: auto;
+      }
+
+      .editor {
+        resize: none;
+      }
+
+      .preview {
+        white-space: pre;
+      }
+
+      /* --- Action Buttons (Copy, Sort, Share) --- */
+      .action-button {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+        color: #374151;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        user-select: none;
+        width: 4rem;
+        text-align: center;
+      }
+
+      .action-button:hover {
+        background-color: #f3f4f6;
+        border-color: #9ca3af;
+      }
+
+      .action-button:active {
+        background-color: #e5e7eb;
+      }
+
+      .share-button {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        margin: 1em auto;
+        width: 100%;
+        max-width: 80rem;
+        color: var(--c-license-text);
+      }
+
+      .footer a {
+        color: var(--c-license-text);
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        color: var(--c-link-hover);
+        text-decoration: underline;
+      }
+
+      .license-text {
+        padding-left: 1em;
+        font-size: 0.875rem;
+      }
+
+      .github-link {
+        position: relative;
+        bottom: 3px;
+        padding-right: 1em;
+        display: inline-block;
+        color: #4b5563;
+        font-size: 0.85rem;
+      }
+
+      .github-link::before {
+        content: "View Source";
+      }
+
+      .github-logo {
+        width: 1.125rem;
+        height: 1.125rem;
+        position: relative;
+        top: 3px;
+        padding-left: 0.35rem;
+      }
+
+      /* --- Mobile Responsiveness --- */
+
+      /* Hide tabs by default on desktop. */
+      .tabs {
+        display: none;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 0;
+          height: 100vh;
+        }
+
+        .header {
+          padding-bottom: 0.5em;
+        }
+
+        .container {
+          border-radius: 0;
+          border: none;
+          box-shadow: none;
+        }
+
+        .options-bar {
+          border-radius: 0;
+        }
+
+        .content-area {
+          flex-direction: column;
+        }
+
+        .pane {
+          width: 100%;
+          height: 100%;
+        }
+
+        .pane-editor {
+          border-right: none;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* --- Tabbed Interface for Mobile --- */
+        .tabs {
+          display: flex;
+          border-bottom: 1px solid #e5e7eb;
+          background-color: #f9fafb;
+        }
+
+        .tab {
+          width: 50%;
+          padding: 0.45rem;
+          text-align: center;
+          font-weight: 500;
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          color: #6b7280;
+        }
+
+        .tab-active {
+          color: #3b82f6;
+          border-bottom-color: #3b82f6;
+        }
+
+        /* Show/hide panes based on which tab is active. */
+        .pane-editor {
+          display: none; /* Hide panes by default on mobile. */
+        }
+        .pane-preview {
+          display: none; /* Hide panes by default on mobile. */
+        }
+        .pane-active {
+          display: flex; /* Show only the active one. */
+        }
+
+        .footer {
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .github-link {
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header">
+      <h1 class="header-title">DirTreeEditor</h1>
+    </header>
+    <div class="container">
+      <!-- The tabbed header, only visible on mobile. -->
+      <div class="tabs">
+        <div class="tab tab-active" id="tab-editor">Editor</div>
+        <div class="tab" id="tab-preview">Preview</div>
+      </div>
+
+      <!-- Option bar for desktop and mobile. -->
+      <div class="options-bar">
+        <div class="option-group">
+          <input type="checkbox" id="check-trailing-slash" />
+          <label for="check-trailing-slash">Trailing Slash</label>
+        </div>
+        <div class="option-group">
+          <input type="checkbox" id="check-icons" />
+          <label for="check-icons">Icons</label>
+        </div>
+        <button class="action-button share-button" id="share-button">Share</button>
+      </div>
+
+      <!-- The main content area with two panes. -->
+      <div class="content-area">
+        <div class="pane pane-editor pane-active" id="pane-editor">
+          <button class="action-button" id="sort-button">Sort</button>
+          <textarea id="editor" class="editor" placeholder="Start your tree here..." spellcheck="false"></textarea>
+        </div>
+
+        <div class="pane pane-preview" id="pane-preview">
+          <button class="action-button" id="copy-button">Copy</button>
+          <pre id="preview" class="preview"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span class="license-text">
+        &copy; Kirawat Sahasewiyon - This project is licensed under the
+        <a href="https://choosealicense.com/licenses/mit/>" target="_blank" rel="noopener noreferrer">MIT License.</a>
+      </span>
+      <a
+        href="https://github.com/kirawat/dir-tree-editor"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="github-link"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="github-logo"
+        >
+          <path
+            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+          ></path>
+        </svg>
+      </a>
+    </footer>
+
+    <script>
+      // --- CONSTANTS ---
+      const INDENT_TYPE_PLACEHOLDER = "    "; // Default 4 spaces.
+
+      // --- DOM ELEMENTS ---
+      const editorTextArea = document.getElementById("editor");
+      const previewOutput = document.getElementById("preview");
+      const checkTrailingSlash = document.getElementById("check-trailing-slash");
+      const checkIcons = document.getElementById("check-icons");
+      const copyButton = document.getElementById("copy-button");
+      const sortButton = document.getElementById("sort-button");
+      const shareButton = document.getElementById("share-button");
+      const tabEditor = document.getElementById("tab-editor");
+      const tabPreview = document.getElementById("tab-preview");
+      const paneEditor = document.getElementById("pane-editor");
+      const panePreview = document.getElementById("pane-preview");
+
+      // --- APP STATE ---
+      /**
+       * The auto-detected indent size (in spaces) used by the editor.
+       * Defaults to 4 and is updated by the parser.
+       */
+      let detectedEditorIndent = 4;
+
+      // --- CORE LOGIC ---
+
+      /**
+       * A simple class to hold our node data during parsing.
+       */
+      class TreeNode {
+        constructor(name, indent, isExplicitFolder = false) {
+          this.name = name;
+          this.indent = indent;
+          this.isExplicitFolder = isExplicitFolder;
+          this.children = [];
+        }
+      }
+
+      /**
+       * Parses the flat indented text from the editor into a tree structure.
+       * @param {string} text - The raw text from the editor.
+       * @returns {TreeNode[]} - An array of root TreeNode objects.
+       */
+      function parseTextToTree(text) {
+        // Auto-detect indentation size by find the first indented line.
+        const firstIndentedLine = text.match(/^( +)[^ ]/m);
+        if (firstIndentedLine) {
+          const spaces = firstIndentedLine[1].length;
+          // Clamp to a max of 4 spaces, default to 4.
+          detectedEditorIndent = spaces > 4 ? 4 : spaces;
+        } else {
+          // If no lines area indented, default to 4.
+          detectedEditorIndent = 4;
+        }
+
+        /**
+         * Gets the indent level of a line based on the detected size.
+         * @param {string} line - The line of text.
+         * @returns {number} - The calculated indent level.
+         */
+        const getIndentLevel = (line) => {
+          const leadingSpaces = line.match(/^ */)[0].length;
+          return Math.floor(leadingSpaces / detectedEditorIndent);
+        };
+
+        const lines = text.split("\n");
+        const rootNodes = [];
+        const stack = [{ node: null, indent: -1 }]; // Dummy root on the stack.
+
+        for (const line of lines) {
+          // We keep blank lines as-is in the root list.
+          if (line.trim() === "") {
+            // Only add blank lines if they are at the root.
+            if (stack.length === 1) {
+              rootNodes.push(new TreeNode("", 0));
+            }
+            continue;
+          }
+
+          let nodeName = line.trim();
+          const indent = getIndentLevel(line);
+          let isExplicitFolder = false;
+
+          // Check for the explicit folder convention '/'.
+          if (nodeName.endsWith("/") && nodeName.length > 1) {
+            nodeName = nodeName.slice(0, -1).trimEnd();
+            isExplicitFolder = true;
+          }
+
+          const node = new TreeNode(nodeName, indent, isExplicitFolder);
+
+          // Find the correct parent on the stack.
+          while (stack[stack.length - 1].indent >= indent) {
+            stack.pop();
+          }
+
+          const parent = stack[stack.length - 1].node;
+          if (parent) {
+            parent.children.push(node);
+          } else {
+            // This is a root-level node.
+            rootNodes.push(node);
+          }
+
+          stack.push({ node: node, indent: indent });
+        }
+
+        return rootNodes;
+      }
+
+      /**
+       * Renders a tree of nodes into a formatted string.
+       * @param {TreeNode[]} nodes - An array of root TreeNode objects.
+       * @returns {string} - The formatted, printable tree string.
+       */
+      function renderTreeToString(nodes) {
+        const result = [];
+        const showSlash = checkTrailingSlash.checked;
+        const showIcons = checkIcons.checked;
+
+        /**
+         * Recursively draws a node and its children.
+         * @param {TreeNode} node - The node to draw.
+         * @param {string} prefix - The full prefix, including connectors (e.g., "│   ├── ").
+         * @param {string} guidePrefix - The guide bar prefix (e.g., "│   ").
+         */
+        function draw(node, prefix, guidePrefix) {
+          if (node.name === "") {
+            // Don't add blank lines with prefixes.
+            result.push("");
+            return;
+          }
+
+          // 1. Assemble the node's name.
+          const isFolder = node.isExplicitFolder || node.children.length > 0;
+          let nodeName = node.name;
+          if (showSlash && isFolder && !nodeName.endsWith("/")) {
+            nodeName += "/";
+          }
+          if (showIcons) {
+            nodeName = (isFolder ? "📁 " : "📄 ") + nodeName;
+          }
+
+          // 2. Add the line to the result.
+          result.push(prefix + nodeName);
+
+          // 3. Find last non-blank child.
+          let lastChildIndex = -1;
+          for (let i = node.children.length - 1; i >= 0; i--) {
+            if (node.children[i].name !== "") {
+              lastChildIndex = i;
+              break;
+            }
+          }
+
+          // 4. Draw all children.
+          node.children.forEach((child, index) => {
+            const isLastChild = index === lastChildIndex;
+            const childConnector = isLastChild ? "└── " : "├── ";
+            // The new prefix for the child node is the guide bar + the connector.
+            const newPrefix = guidePrefix + childConnector;
+            // The new guide prefix for *its* children is this one + a bar or space.
+            const newGuidePrefix = guidePrefix + (isLastChild ? "    " : "│   ");
+
+            draw(child, newPrefix, newGuidePrefix);
+          });
+        }
+
+        // --- Find last non-blank root node ---
+        let lastRootIndex = -1;
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          if (nodes[i].name !== "") {
+            lastRootIndex = i;
+            break;
+          }
+        }
+
+        nodes.forEach((node, index) => {
+          if (node.name === "") {
+            result.push("");
+            return;
+          }
+          const isLastRoot = index === lastRootIndex;
+          // Root nodes have no prefix, just their name.
+          const childGuidePrefix = isLastRoot ? "    " : "│   ";
+
+          // We pass an empty prefix for the node itself, but the
+          // correct guide prefix for its children.
+          draw(node, "", childGuidePrefix);
+        });
+
+        return result.join("\n");
+      }
+
+      /**
+       * Recursively sorts a tree's children alphabetically.
+       * Folders are sorted first, then files.
+       * @param {TreeNode[]} nodes - The array of nodes to sort.
+       */
+      function sortTree(nodes) {
+        nodes.sort((a, b) => {
+          const aIsFolder = a.isExplicitFolder || a.children.length > 0;
+          const bIsFolder = b.isExplicitFolder || b.children.length > 0;
+
+          // Sort folders before files.
+          if (aIsFolder && !bIsFolder) return -1;
+          if (!aIsFolder && bIsFolder) return 1;
+
+          // If both are same type, sort alphabetically.
+          return a.name.localeCompare(b.name, undefined, {
+            sensitivity: "base",
+          });
+        });
+
+        // Recursively sort children.
+        nodes.forEach((node) => {
+          if (node.children.length > 0) {
+            sortTree(node.children);
+          }
+        });
+      }
+
+      /**
+       * Converts a tree structure back into flat, indented text.
+       * @param {TreeNode[]} nodes - The array of root nodes.
+       * @returns {string} - The flat, indented text for the editor.
+       */
+      function treeToText(nodes) {
+        const result = [];
+        const indentSpaces = " ".repeat(detectedEditorIndent);
+
+        /**
+         * Recursively converts a node to an indented text line.
+         * @param {TreeNode} node - The node to process.
+         * @param {number} level - The current indent level.
+         */
+        function convert(node, level = 0) {
+          if (node.name === "") {
+            result.push("");
+            return;
+          }
+
+          let nodeName = node.name;
+          if (node.isExplicitFolder) {
+            nodeName += "/";
+          }
+
+          result.push(indentSpaces.repeat(level) + nodeName);
+
+          node.children.forEach((child) => convert(child, level + 1));
+        }
+
+        nodes.forEach((node) => convert(node, 0));
+        return result.join("\n");
+      }
+
+      /**
+       * Cleans pasted text, stripping tree characters and icons.
+       * @param {string} text - The raw pasted text.
+       * @returns {string} - The cleaned, indented text.
+       */
+      function cleanPastedText(text) {
+        const lines = text.split("\n");
+        const outputIndent = " ".repeat(detectedEditorIndent);
+        const cleanedLines = [];
+
+        // Regex to find all "junk" characters to strip.
+        // This matches tree branches, connectors, icons, and slashes.
+        const stripRegex = /[│├└─📁📄]|(\s*\/$)/g;
+
+        // Regex to find the *last* branch character, to calculate indent.
+        const indentRegex = /.*[│├└]/;
+
+        for (const line of lines) {
+          if (line.trim() === "") {
+            cleanedLines.push("");
+            continue;
+          }
+
+          // 1. Calculate indent level based on tree characters.
+          const match = line.match(indentRegex);
+          let indentLevel = 0;
+          if (match) {
+            // We found tree chars. Calculate indent by char position.
+            // This is a simple approximation.
+            const charCount = match[0].length;
+            // Heuristic: divide by 4 (avg prefix length) to get level.
+            indentLevel = Math.max(0, Math.floor(charCount / 4));
+          } else {
+            // No tree chars. Calculate indent based on spaces.
+            const leadingSpaces = line.match(/^ */)[0].length;
+            indentLevel = Math.floor(leadingSpaces / detectedEditorIndent);
+          }
+
+          // 2. Clean the line content.
+          // We must be careful to strip trailing slashes *only if* they
+          // are at the very end, possibly with spaces.
+          let cleanedName = line.replace(/[│├└─📁📄]/g, "").trim();
+          if (cleanedName.endsWith("/")) {
+            cleanedName = cleanedName.slice(0, -1).trimEnd();
+          }
+
+          // 3. Re-assemble the line.
+          cleanedLines.push(outputIndent.repeat(indentLevel) + cleanedName);
+        }
+        return cleanedLines.join("\n");
+      }
+
+      /**
+       * Updates the browser's URL with the current app state.
+       */
+      function updateUrl() {
+        const params = new URLSearchParams();
+        params.set("trailing", checkTrailingSlash.checked ? "1" : "0");
+        params.set("icons", checkIcons.checked ? "1" : "0");
+
+        const text = editorTextArea.value;
+        if (text) {
+          // Use Base64 to safely encode the text.
+          params.set("v", btoa(encodeURIComponent(text)));
+        }
+
+        // Use replaceState to avoid cluttering browser history.
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+        try {
+          // This will fail in some sandboxed environments (like blobs).
+          window.history.replaceState(null, "", newUrl);
+        } catch (e) {
+          // Ignore the error in sandboxed environments.
+          // console.error("Could not update URL:", e);
+        }
+      }
+
+      /**
+       * This is the main function, called on every update.
+       * It reads, parses, renders, and updates the UI.
+       */
+      function generateAndRenderTree() {
+        const rawText = editorTextArea.value;
+        const treeData = parseTextToTree(rawText);
+        const treeString = renderTreeToString(treeData);
+        previewOutput.textContent = treeString;
+
+        // Updae the URL after rendering.
+        updateUrl();
+      }
+
+      // --- EVENT HANDLERS ---
+
+      /**
+       * Loads settings and content from the URL on page load.
+       */
+      function handlePageLoad() {
+        const params = new URLSearchParams(window.location.search);
+
+        // Default settings.
+        let defaultTrailing = true;
+        let defaultIcons = true;
+
+        // Override with URL parameters if they exist.
+        if (params.has("trailing")) {
+          defaultTrailing = params.get("trailing") === "1";
+        }
+        if (params.has("icons")) {
+          defaultIcons = params.get("icons") === "1";
+        }
+
+        checkTrailingSlash.checked = defaultTrailing;
+        checkIcons.checked = defaultIcons;
+
+        // Load text content from URL if it exists.
+        if (params.has("v")) {
+          try {
+            const encodedText = params.get("v");
+            editorTextArea.value = decodeURIComponent(atob(encodedText));
+          } catch (e) {
+            console.error("Failed to decode text from URL.", e);
+            editorTextArea.value = "";
+          }
+        } else {
+          editorTextArea.value = "";
+        }
+
+        // Run the initial render.
+        generateAndRenderTree();
+      }
+
+      /**
+       * Handles the "paste" event on the editor.
+       * @param {ClipboardEvent} event - The paste event.
+       */
+      function handlePaste(event) {
+        event.preventDefault();
+        const text = event.clipboardData.getData("text/plain");
+
+        // Check if the pasted text looks like a tree.
+        // We check for tree characters, icons, OR trailing slashes.
+        if (/[│├└📁📄]|\/$/.test(text)) {
+          const cleanedText = cleanPastedText(text);
+          document.execCommand("insertText", false, cleanedText);
+        } else {
+          // It's plain text, just insert it.
+          document.execCommand("insertText", false, text);
+        }
+      }
+
+      /**
+       * Handles "keydown" events in the editor for smart indents.
+       * @param {KeyboardEvent} event - The keydown event.
+       */
+      function handleEditorKeyDown(event) {
+        const text = editorTextArea.value;
+        const start = editorTextArea.selectionStart;
+        const end = editorTextArea.selectionEnd;
+
+        // --- 1. Handle "Tab" key ---
+        if (event.key === "Tab") {
+          event.preventDefault();
+          const indent = " ".repeat(detectedEditorIndent);
+
+          // Insert the indent at the cursor position.
+          editorTextArea.value = text.substring(0, start) + indent + text.substring(end);
+          // Move cursor to after the indent.
+          editorTextArea.selectionStart = editorTextArea.selectionEnd = start + indent.length;
+        }
+
+        // --- 1. Handle "Enter" key ---
+        if (event.key === "Enter") {
+          event.preventDefault();
+
+          // Find the start of the current line.
+          let lineStart = start;
+          while (lineStart > 0 && text[lineStart - 1] !== "\n") {
+            lineStart--;
+          }
+
+          // Get the current line's content and its indentation.
+          const line = text.substring(lineStart, start);
+          const indentMatch = line.match(/^ */);
+          const indent = indentMatch ? indentMatch[0] : "";
+
+          // Insert a newline and the same indentation.
+          const newText = "\n" + indent;
+          editorTextArea.value = text.substring(0, start) + newText + text.substring(end);
+          // Move cursor to the new line.
+          editorTextArea.selectionStart = editorTextArea.selectionEnd = start + newText.length;
+        }
+
+        // --- 3. Handle "Backspace" key ---
+        if (event.key === "Backspace") {
+          // Check if cursor is at the start of the line (or only preceded by whitespace).
+          let lineStart = start;
+          while (lineStart > 0 && text[lineStart - 1] !== "\n") {
+            lineStart--;
+          }
+          const beforeCursor = text.substring(lineStart, start);
+
+          // If cursor is at start AND line is indented.
+          if (start === end && /^[ \t]+$/.test(beforeCursor) && beforeCursor.length > 0) {
+            event.preventDefault();
+
+            // Delete one "chunk" of indentation.
+            const indentSize = detectedEditorIndent;
+            const newIndentSize = Math.max(0, beforeCursor.length - indentSize);
+            const newIndent = " ".repeat(newIndentSize);
+
+            editorTextArea.value = text.substring(0, lineStart) + newIndent + text.substring(start);
+            editorTextArea.selectionStart = editorTextArea.selectionEnd = lineStart + newIndentSize;
+          }
+        }
+      }
+
+      /**
+       * Handles mobile tab switching.
+       */
+      function handleTabClick(isEditor) {
+        tabEditor.classList.toggle("tab-active", isEditor);
+        paneEditor.classList.toggle("pane-active", isEditor);
+
+        tabPreview.classList.toggle("tab-active", !isEditor);
+        panePreview.classList.toggle("pane-active", !isEditor);
+
+        if (!isEditor) {
+          // We only need to render when switching to Preview.
+          generateAndRenderTree();
+        }
+      }
+
+      /**
+       * Handle "Copy" button click.
+       */
+      function handleCopyButtonClick() {
+        // Trim to remove any trailing newline.
+        const textToCopy = previewOutput.textContent.trimEnd();
+
+        // Use a temporary textarea to preserve formatting.
+        const tempArea = document.createElement("textarea");
+        tempArea.value = textToCopy;
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempArea);
+
+        // Feedback to user.
+        copyButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyButton.textContent = "Copy";
+        }, 2000);
+      }
+
+      /**
+       * Handle "Sort" button click.
+       */
+      function handleSortButtonClick() {
+        const tree = parseTextToTree(editorTextArea.value);
+        sortTree(tree);
+        editorTextArea.value = treeToText(tree);
+        generateAndRenderTree();
+      }
+
+      /**
+       * Handle "Share" button click.
+       */
+      function handleShareButtonClick() {
+        // The URL is already up-to-date, so just copy it.
+        const url = window.location.href;
+
+        const tempArea = document.createElement("textarea");
+        tempArea.value = url;
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempArea);
+
+        // Feedback to user.
+        shareButton.textContent = "Copied!";
+        setTimeout(() => {
+          shareButton.textContent = "Share";
+        }, 2000);
+      }
+
+      // --- EVENT LISTENERS ---
+
+      // Listen to all inputs to trigger a re-render.
+      editorTextArea.addEventListener("input", generateAndRenderTree);
+      editorTextArea.addEventListener("paste", handlePaste);
+      editorTextArea.addEventListener("keydown", handleEditorKeyDown);
+
+      // Options listeners.
+      checkTrailingSlash.addEventListener("change", generateAndRenderTree);
+      checkIcons.addEventListener("change", generateAndRenderTree);
+
+      // Button listeners.
+      copyButton.addEventListener("click", handleCopyButtonClick);
+      sortButton.addEventListener("click", handleSortButtonClick);
+      shareButton.addEventListener("click", handleShareButtonClick);
+
+      // Mobile tab listeners.
+      tabEditor.addEventListener("click", () => handleTabClick(true));
+      tabPreview.addEventListener("click", () => handleTabClick(false));
+
+      // --- INITIALIZATION ---
+
+      // Run the page load handler to set up the app.
+      handlePageLoad();
+    </script>
+  </body>
+</html>
