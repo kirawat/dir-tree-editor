@@ -6,7 +6,7 @@
     <title>DirTreeEditor</title>
 
     <!--
-    DirTreeEditor v1.0.0
+    DirTreeEditor v1.0.1
 
     Copyright (c) 2025 Kirawat Sahasewiyon
 
@@ -576,7 +576,7 @@
           }
           const isLastRoot = index === lastRootIndex;
           // Root nodes have no prefix, just their name.
-          const childGuidePrefix = isLastRoot ? "    " : "│   ";
+          const childGuidePrefix = isLastRoot ? "" : "│   ";
 
           // We pass an empty prefix for the node itself, but the
           // correct guide prefix for its children.
