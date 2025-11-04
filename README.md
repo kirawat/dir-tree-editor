@@ -4,6 +4,8 @@
 
 It provdes a simple, text-based editor on one side and a live formatted tree preview on the other, all in a portable, offline-first app.
 
+You can use the online version at [dirtreeeditor.kirawat.me](https://dirtreeeditor.kirawat.me).
+
 ## How to Use
 
 The application is split into two panes for a simple workflow:
