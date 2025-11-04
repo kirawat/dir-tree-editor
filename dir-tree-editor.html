@@ -40,7 +40,9 @@
       body {
         height: 100%;
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
         background-color: #f3f4f6;
         color: #111827;
       }
@@ -344,14 +346,21 @@
           <input type="checkbox" id="check-icons" />
           <label for="check-icons">Icons</label>
         </div>
-        <button class="action-button share-button" id="share-button">Share</button>
+        <button class="action-button share-button" id="share-button">
+          Share
+        </button>
       </div>
 
       <!-- The main content area with two panes. -->
       <div class="content-area">
         <div class="pane pane-editor pane-active" id="pane-editor">
           <button class="action-button" id="sort-button">Sort</button>
-          <textarea id="editor" class="editor" placeholder="Start your tree here..." spellcheck="false"></textarea>
+          <textarea
+            id="editor"
+            class="editor"
+            placeholder="Start your tree here..."
+            spellcheck="false"
+          ></textarea>
         </div>
 
         <div class="pane pane-preview" id="pane-preview">
@@ -365,7 +374,12 @@
     <footer class="footer">
       <span class="license-text">
         &copy; Kirawat Sahasewiyon - This project is licensed under the
-        <a href="https://choosealicense.com/licenses/mit/>" target="_blank" rel="noopener noreferrer">MIT License.</a>
+        <a
+          href="https://choosealicense.com/licenses/mit/>"
+          target="_blank"
+          rel="noopener noreferrer"
+          >MIT License.</a
+        >
       </span>
       <a
         href="https://github.com/kirawat/dir-tree-editor"
@@ -394,12 +408,15 @@
 
     <script>
       // --- CONSTANTS ---
-      const INDENT_TYPE_PLACEHOLDER = "    "; // Default 4 spaces.
+      const DEFAULT_EDITOR_INDENT = 2;
+      const INDENT_TYPE_PLACEHOLDER = "  "; // Default 2 spaces.
 
       // --- DOM ELEMENTS ---
       const editorTextArea = document.getElementById("editor");
       const previewOutput = document.getElementById("preview");
-      const checkTrailingSlash = document.getElementById("check-trailing-slash");
+      const checkTrailingSlash = document.getElementById(
+        "check-trailing-slash",
+      );
       const checkIcons = document.getElementById("check-icons");
       const copyButton = document.getElementById("copy-button");
       const sortButton = document.getElementById("sort-button");
@@ -414,7 +431,7 @@
        * The auto-detected indent size (in spaces) used by the editor.
        * Defaults to 4 and is updated by the parser.
        */
-      let detectedEditorIndent = 4;
+      let detectedEditorIndent = DEFAULT_EDITOR_INDENT;
 
       // --- CORE LOGIC ---
 
@@ -440,11 +457,12 @@
         const firstIndentedLine = text.match(/^( +)[^ ]/m);
         if (firstIndentedLine) {
           const spaces = firstIndentedLine[1].length;
-          // Clamp to a max of 4 spaces, default to 4.
-          detectedEditorIndent = spaces > 4 ? 4 : spaces;
+          // Clamp to a max of 2 spaces, default to 2.
+          detectedEditorIndent =
+            spaces > DEFAULT_EDITOR_INDENT ? DEFAULT_EDITOR_INDENT : spaces;
         } else {
-          // If no lines area indented, default to 4.
-          detectedEditorIndent = 4;
+          // If no lines area indented, default to 2.
+          detectedEditorIndent = DEFAULT_EDITOR_INDENT;
         }
 
         /**
@@ -554,7 +572,8 @@
             // The new prefix for the child node is the guide bar + the connector.
             const newPrefix = guidePrefix + childConnector;
             // The new guide prefix for *its* children is this one + a bar or space.
-            const newGuidePrefix = guidePrefix + (isLastChild ? "    " : "│   ");
+            const newGuidePrefix =
+              guidePrefix + (isLastChild ? "    " : "│   ");
 
             draw(child, newPrefix, newGuidePrefix);
           });
@@ -814,9 +833,11 @@
           const indent = " ".repeat(detectedEditorIndent);
 
           // Insert the indent at the cursor position.
-          editorTextArea.value = text.substring(0, start) + indent + text.substring(end);
+          editorTextArea.value =
+            text.substring(0, start) + indent + text.substring(end);
           // Move cursor to after the indent.
-          editorTextArea.selectionStart = editorTextArea.selectionEnd = start + indent.length;
+          editorTextArea.selectionStart = editorTextArea.selectionEnd =
+            start + indent.length;
         }
 
         // --- 1. Handle "Enter" key ---
@@ -836,9 +857,11 @@
 
           // Insert a newline and the same indentation.
           const newText = "\n" + indent;
-          editorTextArea.value = text.substring(0, start) + newText + text.substring(end);
+          editorTextArea.value =
+            text.substring(0, start) + newText + text.substring(end);
           // Move cursor to the new line.
-          editorTextArea.selectionStart = editorTextArea.selectionEnd = start + newText.length;
+          editorTextArea.selectionStart = editorTextArea.selectionEnd =
+            start + newText.length;
         }
 
         // --- 3. Handle "Backspace" key ---
@@ -851,7 +874,11 @@
           const beforeCursor = text.substring(lineStart, start);
 
           // If cursor is at start AND line is indented.
-          if (start === end && /^[ \t]+$/.test(beforeCursor) && beforeCursor.length > 0) {
+          if (
+            start === end &&
+            /^[ \t]+$/.test(beforeCursor) &&
+            beforeCursor.length > 0
+          ) {
             event.preventDefault();
 
             // Delete one "chunk" of indentation.
@@ -859,8 +886,10 @@
             const newIndentSize = Math.max(0, beforeCursor.length - indentSize);
             const newIndent = " ".repeat(newIndentSize);
 
-            editorTextArea.value = text.substring(0, lineStart) + newIndent + text.substring(start);
-            editorTextArea.selectionStart = editorTextArea.selectionEnd = lineStart + newIndentSize;
+            editorTextArea.value =
+              text.substring(0, lineStart) + newIndent + text.substring(start);
+            editorTextArea.selectionStart = editorTextArea.selectionEnd =
+              lineStart + newIndentSize;
           }
         }
       }
