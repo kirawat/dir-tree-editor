@@ -373,9 +373,9 @@
     <!-- Footer -->
     <footer class="footer">
       <span class="license-text">
-        &copy; Kirawat Sahasewiyon - This project is licensed under the
+        &copy; Kirawat Sahasewiyon - Licensed under the
         <a
-          href="https://choosealicense.com/licenses/mit/>"
+          href="https://choosealicense.com/licenses/mit/"
           target="_blank"
           rel="noopener noreferrer"
           >MIT License.</a
@@ -823,26 +823,19 @@
        * @param {KeyboardEvent} event - The keydown event.
        */
       function handleEditorKeyDown(event) {
-        const text = editorTextArea.value;
-        const start = editorTextArea.selectionStart;
-        const end = editorTextArea.selectionEnd;
-
         // --- 1. Handle "Tab" key ---
         if (event.key === "Tab") {
           event.preventDefault();
           const indent = " ".repeat(detectedEditorIndent);
-
-          // Insert the indent at the cursor position.
-          editorTextArea.value =
-            text.substring(0, start) + indent + text.substring(end);
-          // Move cursor to after the indent.
-          editorTextArea.selectionStart = editorTextArea.selectionEnd =
-            start + indent.length;
+          document.execCommand("insertText", false, indent);
         }
 
-        // --- 1. Handle "Enter" key ---
+        // --- 2. Handle "Enter" key ---
         if (event.key === "Enter") {
           event.preventDefault();
+
+          const text = editorTextArea.value;
+          const start = editorTextArea.selectionStart;
 
           // Find the start of the current line.
           let lineStart = start;
@@ -857,15 +850,15 @@
 
           // Insert a newline and the same indentation.
           const newText = "\n" + indent;
-          editorTextArea.value =
-            text.substring(0, start) + newText + text.substring(end);
-          // Move cursor to the new line.
-          editorTextArea.selectionStart = editorTextArea.selectionEnd =
-            start + newText.length;
+          document.execCommand("insertText", false, newText);
         }
 
         // --- 3. Handle "Backspace" key ---
         if (event.key === "Backspace") {
+          const text = editorTextArea.value;
+          const start = editorTextArea.selectionStart;
+          const end = editorTextArea.selectionEnd;
+
           // Check if cursor is at the start of the line (or only preceded by whitespace).
           let lineStart = start;
           while (lineStart > 0 && text[lineStart - 1] !== "\n") {
@@ -886,10 +879,14 @@
             const newIndentSize = Math.max(0, beforeCursor.length - indentSize);
             const newIndent = " ".repeat(newIndentSize);
 
+            // Manually set the value and position for the backspace.
             editorTextArea.value =
               text.substring(0, lineStart) + newIndent + text.substring(start);
             editorTextArea.selectionStart = editorTextArea.selectionEnd =
               lineStart + newIndentSize;
+
+            // Manually trigger the render.
+            generateAndRenderTree();
           }
         }
       }
