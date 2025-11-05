@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.1 (2025-11-05)
+
+**Fixed**
+
+- (mobile) Ensure toolbar stay hidden on preview pane and when screen changes from mobile to desktop.
+
 ## v1.2.0 (2025-11-05)
 
 **Changed**
