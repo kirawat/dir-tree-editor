@@ -409,12 +409,16 @@
 
         /* --- Toolbar (Mobile Only) --- */
         .toolbar {
-          display: flex;
+          display: none;
           justify-content: space-around;
           align-items: center;
           height: 2.5rem;
           background-color: #f9fafb;
           border-bottom: 1px solid #e5e7eb;
+        }
+
+        .toolbar.toolbar-visible {
+          display: flex;
         }
 
         .toolbar-button {
@@ -491,7 +495,7 @@
       </div>
 
       <!-- Toolbar (Mobile Only) -->
-      <div class="toolbar" id="toolbar">
+      <div class="toolbar toolbar-visible" id="toolbar">
         <button class="toolbar-button" id="undo-button" title="Undo">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1388,7 +1392,7 @@
         tabPreview.classList.toggle("tab-active", !isEditor);
         panePreview.classList.toggle("pane-active", !isEditor);
 
-        mobileToolbar.style.display = isEditor ? "flex" : "none";
+        toolbar.classList.toggle("toolbar-visible", isEditor);
 
         if (!isEditor) {
           // We only need to render when switching to Preview.
