@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0 (2025-11-05)
+
+**Changed**
+
+- **Toolbar:** Moved toolbar to the top due to issue with keyboard height on mobile screen.
+
 ## v1.1.0 (2025-11-04)
 
 This release focuses on adding new quality-of-life features, including a full Undo/Redo system, a mobile-specific editing menu, and a UI refresh that replaces text buttons with cleaner icons.
